@@ -8,11 +8,14 @@ import {
   View,
   StatusBar,
   Image,
-  TouchableOpacity
+  TouchableOpacity,
+  NativeModules
 } from 'react-native';
 import Camera from 'react-native-camera';
+// import request from './utils/api';
 
 class memlyios extends Component {
+
   constructor(props) {
     super(props);
 
@@ -63,7 +66,38 @@ class memlyios extends Component {
   takePicture() {
     if (this.camera) {
       this.camera.capture()
-        .then((data) => console.log(data))
+        .then((data) => {
+          console.log(data);
+
+          // var apiURL = 'https://thawing-fortress-62578.herokuapp.com/api/photo';
+          // request.uploadPhoto('photo', data.path, apiURL, (err) => {
+          //   if (err) {
+          //     console.log(err);
+          //     return;
+          //   }
+          // });
+
+
+          // We created a custom module called ReadImageData in 'RCTCustom.m' and use it here
+          NativeModules.ReadImageData.readImage(data.path, (image) => {
+            console.log(image); // <== our data
+            fetch('https://thawing-fortress-62578.herokuapp.com/api/photo', {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ imageData: image }),
+            })
+              .then((response) => {
+                console.log(response);
+              })
+              .catch((err) => {
+                console.error(err);
+              });
+
+          })
+        })
         .catch(err => console.error(err));
     }
   }
